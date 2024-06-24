@@ -1,6 +1,8 @@
 -- Subdatasets used for Tableau
 -- VIEW Summary_death: Summary table of total death amount among Continents
 -- VIEW New_vacc_pop_portion: Cumulated_new_vaccinations, location, date ...
+-- VIEW: Summary_New_death: total cases, total death and death perc
+-- VIEW Infect_info: Countries with Highest Infection Rate compared to Population
 
 -- Death:
 
@@ -48,16 +50,17 @@ WHERE total_cases IS NOT NULL AND location LIKE '%States%' AND continent is not 
 ORDER BY 1,2
 
 
--- Countries with Highest Infection Rate compared to Population
+--VIEW Infect_info: Countries with Highest Infection Rate compared to Population
 
+CREATE VIEW Infect_info AS
 
-SELECT Location, Population, MAX(total_cases) as Highest_Infection_num, 
+(SELECT Location, Population, MAX(total_cases) as Highest_Infection_num, 
        MAX (ROUND((total_cases:: NUMERIC/Population:: NUMERIC)*100 ,2)) as Infect_Portion
 	   
 FROM  public."COVID_Death"
 WHERE total_cases IS NOT NULL -- Exclude country that not have recorded data about infected situation
 GROUP BY Location, Population
-ORDER BY Infect_Portion DESC
+ORDER BY Infect_Portion DESC)
 
 
 -- Countries with Highest Death Count per Population
@@ -247,6 +250,15 @@ JOIN public."COVID_Death" dea
 	AND vacc.date= dea.date
 WHERE dea.continent IS NOT NULL
 ORDER BY dea.location, dea.date
+)
+
+-- VIEW: Summary_New_death: total cases, total death and death perc
+
+CREATE VIEW Summary_New_death AS
+(SELECT SUM(new_cases) AS Total_new_cases, 
+       SUM(new_deaths) AS Total_new_death, 
+	   ROUND(100*SUM(new_deaths)::NUMERIC/SUM(new_cases)::NUMERIC,2) AS New_case_death_perc
+FROM public."COVID_Death"
 )
 
  
